@@ -7,12 +7,10 @@ require("rpart")
 require("rpart.plot")
 
 # Aqui se debe poner la carpeta de la materia de SU computadora local
-#setwd("X:\\gdrive\\labo2024v1\\") # Establezco el Working Directory
-setwd("/Users/inabeledo/Documents/laboratorio/labo2024v1") # Establezco el Working Directory
-getwd()
+setwd("~/buckets/b1/") # Establezco el Working Directory
 
 # cargo el dataset
-dataset <- fread("/Users/inabeledo/Documents/laboratorio/datasets/dataset_pequeno.csv")
+dataset <- fread("./datasets/dataset_pequeno.csv")
 
 dtrain <- dataset[foto_mes == 202107] # defino donde voy a entrenar
 dapply <- dataset[foto_mes == 202109] # defino donde voy a aplicar el modelo

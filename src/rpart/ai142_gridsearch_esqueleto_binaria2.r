@@ -11,7 +11,7 @@ require("parallel")
 
 PARAM <- list()
 # reemplazar por las propias semillas
-PARAM$semillas <- c(100151,100333,100391,100613,100801)
+PARAM$semillas <- c(100151, 100333, 100391, 100613, 100801)
 
 #------------------------------------------------------------------------------
 # particionar agrega una columna llamada fold a un dataset
@@ -38,7 +38,7 @@ ArbolEstimarGanancia <- function(semilla, param_basicos) {
 
 
   # genero el modelo
-  # quiero predecir clase_ternaria a partir del resto
+  # quiero predecir clase_binaria1 a partir del resto
   modelo <- rpart("clase_binaria1 ~ .",
     data = dataset[fold == 1], # fold==1  es training,  el 70% de los datos
     xval = 0,
@@ -95,15 +95,15 @@ setwd("~/buckets/b1/") # Establezco el Working Directory
 # cargo los datos
 dataset <- fread("./datasets/dataset_pequeno.csv")
 
-# creo la columna clase_binaria1
-#dataset[, clase_binaria1 := ifelse(clase_ternaria = "BAJA+2", "pos", "neg")]
+# trabajo solo con los datos con clase, es decir 202107
+dataset <- dataset[clase_ternaria != ""]
 
+# creo la columna clase_binaria1
 dataset[clase_ternaria == "BAJA+2", clase_binaria1 := "pos"]
 dataset[clase_ternaria != "BAJA+2", clase_binaria1 := "neg"]
 
-
-# trabajo solo con los datos con clase, es decir 202107
-dataset <- dataset[clase_ternaria != ""]
+# elimino la columna clase_ternaria para que el modelo no la utilice como variable para predecir
+dataset <- dataset[, !"clase_ternaria"]
 
 # genero el archivo para Kaggle
 # creo la carpeta donde va el experimento
@@ -117,7 +117,7 @@ tb_grid_search_binario <- data.table( vmax_depth = integer(),
                               vmin_split = integer(),
                               vmin_bucket = integer(),
                               vcp = integer(),
-                              ganancia_promedio = numeric() )
+                              ganancia_promedio = numeric())
 
 
 # itero por los loops anidados para cada hiperparametro
@@ -141,7 +141,7 @@ for (vmax_depth in c(4, 6, 8, 10, 12, 14)) {
     print(ganancia_promedio)
     
     # agrego a la tabla
-    tb_grid_search_binario <- rbindlist( 
+    tb_grid_search_binario <- rbindlist(
       list( tb_grid_search_binario, 
             list( vmax_depth, vmin_split, vmin_bucket, vcp, ganancia_promedio) ) )
 
@@ -152,7 +152,8 @@ for (vmax_depth in c(4, 6, 8, 10, 12, 14)) {
   # escribo la tabla a disco en cada vuelta del loop mas externo
   Sys.sleep(2)  # espero un par de segundos
 
-  fwrite( tb_grid_search_binario,
+  fwrite(tb_grid_search_binario,
           file = archivo_salida,
-          sep = ";" )
+          sep = ";")
+
 }
