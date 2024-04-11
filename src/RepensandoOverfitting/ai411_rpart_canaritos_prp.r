@@ -29,7 +29,7 @@ for( i in 1:154 ) dataset[ , paste0("canarito", i ) :=  runif( nrow(dataset)) ]
                data= dataset[ foto_mes==202107,],
                model = TRUE,
                xval = 0,
-               cp = -0.7,
+               cp = -1,
                minsplit =  600,
                minbucket = 300,
                maxdepth = 6 )
