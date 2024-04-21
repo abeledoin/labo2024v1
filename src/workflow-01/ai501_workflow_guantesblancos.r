@@ -162,9 +162,9 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 
   # no me engraso las manos con los Canaritos Asesinos
   # varia de 0.0 a 2.0, si es 0.0 NO se activan
-  param_local$CanaritosAsesinos$ratio <- 0.0
+  param_local$CanaritosAsesinos$ratio <- 0.5
   # desvios estandar de la media, para el cutoff
-  param_local$CanaritosAsesinos$desvios <- 4.0
+  param_local$CanaritosAsesinos$desvios <- 3.0
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
