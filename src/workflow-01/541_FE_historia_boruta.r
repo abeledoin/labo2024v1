@@ -433,8 +433,10 @@ BorutaFilter <- function(boruta_semilla) {
   # campos sobre los que vamos a hacer en entrenamiento
   campos_buenos <- setdiff(
     colnames(dataset),
-    c( campitos, "clase01")
+    c("numero_de_cliente", "foto_mes", "clase_ternaria")
+    #c( campitos, "clase01")
   )
+
 
   azar <- runif(nrow(dataset))
 
@@ -459,7 +461,8 @@ BorutaFilter <- function(boruta_semilla) {
 
   col_utiles <- unique(c(
     getSelectedAttributes(boruta_out),
-    c( campitos, "mes")
+    c("numero_de_cliente", "foto_mes", "clase_ternaria")
+    #c( campitos, "mes")
   ))
 
 
