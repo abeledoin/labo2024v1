@@ -5,8 +5,6 @@
 rm(list = ls(all.names = TRUE)) # remove all objects
 gc(full = TRUE) # garbage collection
 
-install.packages("Boruta")
-
 require("data.table")
 require("yaml")
 require("Rcpp")
