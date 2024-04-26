@@ -166,6 +166,9 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
   # desvios estandar de la media, para el cutoff
   param_local$CanaritosAsesinos$desvios <- 3.0
 
+ # no me engraso las manos con boruta
+  param_local$Boruta$enabled <- TRUE # FALSE, no corre nada de lo que sigue
+
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
