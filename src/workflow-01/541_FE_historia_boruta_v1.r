@@ -14,7 +14,6 @@ require("randomForest") # solo se usa para imputar nulos
 
 require("lightgbm")
 
-install.packages("Boruta")
 library(Boruta)
 
 #------------------------------------------------------------------------------
