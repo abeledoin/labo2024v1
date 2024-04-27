@@ -5,13 +5,11 @@
 rm(list = ls(all.names = TRUE)) # remove all objects
 gc(full = TRUE) # garbage collection
 
+library (Boruta)
 require("rlang")
 require("yaml")
 require("data.table")
 require("ParamHelpers")
-
-install.packages("Boruta")
-library(Boruta)
 
 # creo environment global
 envg <- env()
@@ -58,7 +56,7 @@ source( exp_lib )
 
 #------------------------------------------------------------------------------
 
-# pmyexp <- "DT0002"
+# pmyexp <- "DT0008"
 # parch <- "competencia_2024.csv.gz"
 # pserver <- "local"
 
@@ -78,8 +76,8 @@ DT_incorporar_dataset_default <- function( pmyexp, parch, pserver="local")
 }
 #------------------------------------------------------------------------------
 
-# pmyexp <- "CA0001"
-# pinputexps <- "DT0002"
+# pmyexp <- "CA0007"
+# pinputexps <- "DT0008"
 # pserver <- "local"
 
 CA_catastrophe_default <- function( pmyexp, pinputexps, pserver="local")
@@ -98,8 +96,8 @@ CA_catastrophe_default <- function( pmyexp, pinputexps, pserver="local")
 # Data Drifting de Guantes Blancos
 
 
-# pmyexp <- "DR0001"
-# pinputexps <- "CA0001"
+# pmyexp <- "DR0007"
+# pinputexps <- "CA0007"
 # pserver <- "local"
 
 DR_drifting_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
@@ -119,11 +117,11 @@ DR_drifting_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 }
 #------------------------------------------------------------------------------
 
-# pmyexp <- "FE0001"
-# pinputexps <- "DR0001"
+# pmyexp <- "FE0007"
+# pinputexps <- "DR0007"
 # pserver <- "local"
 
-FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
+FE_historia_boruta <- function( pmyexp, pinputexps, pserver="local")
 {
   if( -1 == (param_local <- exp_init( pmyexp, pinputexps, pserver ))$resultado ) return( 0 )# linea fija
 
@@ -167,14 +165,13 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
   # varia de 0.0 a 2.0, si es 0.0 NO se activan
   param_local$CanaritosAsesinos$ratio <- 0.0
   # desvios estandar de la media, para el cutoff
-  param_local$CanaritosAsesinos$desvios <- 3.0
-
- # no me engraso las manos con boruta
-  param_local$Boruta$enabled <- TRUE # FALSE, no corre nada de lo que sigue
+  param_local$CanaritosAsesinos$desvios <- 4.0
+  
+  #Boruta
+  param_local$Boruta$enabled <- TRUE
   param_local$Boruta$train_from <- 202101
-  param_local$Boruta$train_to <- 202103
-  param_local$Boruta$max_runs <- 15
-
+  param_local$Boruta$train_to <- 202101
+  param_local$Boruta$max_runs <- 30
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
@@ -332,7 +329,7 @@ corrida_guantesblancos_202109 <- function( pnombrewf, pvirgen=FALSE )
   CA_catastrophe_default( "CA_boruta1", "DT_boruta1" )
 
   DR_drifting_guantesblancos( "DR_boruta1", "CA_boruta1" )
-  FE_historia_guantesblancos( "FE_boruta1", "DR_boruta1" )
+  FE_historia_boruta( "FE_boruta1", "DR_boruta1" )
 
   TS_strategy_guantesblancos_202109( "TS_boruta1", "FE_boruta1" )
 

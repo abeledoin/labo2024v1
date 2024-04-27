@@ -5,6 +5,7 @@
 rm(list = ls(all.names = TRUE)) # remove all objects
 gc(full = TRUE) # garbage collection
 
+library (Boruta)
 require("data.table")
 require("yaml")
 require("Rcpp")
@@ -14,8 +15,6 @@ require("randomForest") # solo se usa para imputar nulos
 
 require("lightgbm")
 
-install.packages("Boruta")
-library(Boruta)
 
 #------------------------------------------------------------------------------
 
@@ -325,9 +324,10 @@ CanaritosAsesinos <- function(
 
   campos_buenos <- setdiff(
     colnames(dataset),
-    c( campitos, "clase01")
+    c(campitos,"clase01")
   )
 
+  set.seed(canaritos_semilla, kind = "L'Ecuyer-CMRG")
   azar <- runif(nrow(dataset))
 
   dataset[, entrenamiento :=
@@ -415,65 +415,64 @@ CanaritosAsesinos <- function(
 
   dataset[, (col_inutiles) := NULL]
 }
-
-
 #------------------------------------------------------------------------------
+#Boruta
 
-BorutaFilter <- function(boruta_semilla) {
-
+BorutaFilter <- function( boruta_semilla ) {
+  
   OUTPUT$cols_pre_boruta <- ncol(dataset)
-
+  
   ## PREPARACION DATASET
-
-  # Armo una lista auxiliar para el under sampling clase00
-  set.seed(PARAM$seed, kind = "L'Ecuyer-CMRG")
   
   # Armo un feature de clasificación
-  dataset[, clase01 := ifelse(clase_ternaria == "CONTINUA", 0, 1)]
-
+ 
+   dataset[, clase01 := ifelse(clase_ternaria == "CONTINUA", 0, 1)]
   # campos sobre los que vamos a hacer en entrenamiento
-  campos_buenos <- setdiff(
+  
+   campos_buenos <- setdiff(
     colnames(dataset),
     campitos
-    #c( campitos, "clase01")
   )
-
-
+  
+  # Armo una lista auxiliar para el under sampling clase00
+  set.seed(boruta_semilla, kind = "L'Ecuyer-CMRG")
   azar <- runif(nrow(dataset))
-
+  
+  # Agrego una columna para indicar cuales quiero usar del dataset
   dataset[, entrenamiento :=
-    foto_mes >= PARAM$Boruta$train_from & foto_mes <= PARAM$Boruta$train_to & (clase01 == 1 | azar < 0.10)]
-
-
+            as.integer(
+              foto_mes >= PARAM$Boruta$train_from & 
+                foto_mes <= PARAM$Boruta$train_to & 
+                (clase01 == 1 | azar < 0.10))
+  ]
+  
   # Imputo los nulos
-  dtrain = na.roughfix(dataset[entrenamiento == TRUE, ..campos_buenos])
-
-  boruta_out <- Boruta(clase01~., data = dtrain, doTrace = 2, maxRuns = PARAM$Boruta$max_runs)
-
+  dtrain = na.roughfix(dataset[entrenamiento==TRUE, ..campos_buenos])
+  
+  boruta_out <- Boruta(clase01~.,data=dtrain, doTrace=2, maxRuns=PARAM$Boruta$max_runs)
+  
   fwrite(
     as.list(getSelectedAttributes(boruta_out)),
     file = "boruta_attributes.txt",
     sep = "\n"
   )
-
+  
   jpeg( "boruta_plot.jpeg" , width = 1024, height = 800 )
   plot( boruta_out , )
   dev.off()
-
+  
   col_utiles <- unique(c(
     getSelectedAttributes(boruta_out),
     campitos
-    #c( campitos, "mes")
   ))
-
+  
   col_inutiles <- setdiff(colnames(dataset), col_utiles)
-
-  dataset[, (col_inutiles) := NULL]
-
+  
+  dataset[, (col_inutiles) := NULL]  
+  
 }
 
 
-#------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # Aqui empieza el programa
 OUTPUT$PARAM <- PARAM
@@ -481,9 +480,7 @@ OUTPUT$time$start <- format(Sys.time(), "%Y%m%d %H%M%S")
 
 PARAM$RandomForest$semilla <- PARAM$semilla
 PARAM$CanaritosAsesinos$semilla <- PARAM$semilla
-
-PARAM$Boruta$seed <- PARAM$semilla # cambiar por la propia semilla
-
+PARAM$Boruta$semilla<-PARAM$semilla
   
 # cargo el dataset donde voy a entrenar
 # esta en la carpeta del exp_input y siempre se llama  dataset.csv.gz
@@ -658,16 +655,19 @@ if (PARAM$CanaritosAsesinos$ratio > 0.0) {
   OUTPUT$CanaritosAsesinos$ncol_despues <- ncol(dataset)
   GrabarOutput()
 }
-
-###############
-# Boruta
+#------------------------------------------------------------------------------
+#Boruta
 
 if( PARAM$Boruta$enabled ){
   OUTPUT$Boruta$ncol_antes <- ncol(dataset)
-  BorutaFilter( boruta_semilla = PARAM$Boruta$seed )
+  BorutaFilter(
+  boruta_semilla = PARAM$Boruta$semilla
+  )
+  
   OUTPUT$Boruta$ncol_despues <- ncol(dataset)
   GrabarOutput()
-  }
+  
+}
 
 #------------------------------------------------------------------------------
 # grabo el dataset
