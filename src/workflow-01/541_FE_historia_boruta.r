@@ -447,7 +447,7 @@ BorutaFilter <- function(boruta_semilla) {
   # Imputo los nulos
   dtrain = na.roughfix(dataset[entrenamiento == TRUE, ..campos_buenos])
 
-  boruta_out <- Boruta(clase01~., data = dtrain, doTrace = 2, maxRuns = 100)
+  boruta_out <- Boruta(clase01~., data = dtrain, doTrace = 2, maxRuns = 15)
 
   fwrite(
     as.list(getSelectedAttributes(boruta_out)),
