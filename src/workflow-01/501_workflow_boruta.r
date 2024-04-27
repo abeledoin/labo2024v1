@@ -171,6 +171,9 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 
  # no me engraso las manos con boruta
   param_local$Boruta$enabled <- TRUE # FALSE, no corre nada de lo que sigue
+  param_local$Boruta$train_from <- 202101
+  param_local$Boruta$train_to <- 202103
+  param_local$Boruta$max_runs <- 15
 
 
   return( exp_correr_script( param_local ) ) # linea fija

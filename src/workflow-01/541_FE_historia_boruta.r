@@ -442,13 +442,13 @@ BorutaFilter <- function(boruta_semilla) {
   azar <- runif(nrow(dataset))
 
   dataset[, entrenamiento :=
-    foto_mes >= 202101 & foto_mes <= 202103 & (clase01 == 1 | azar < 0.10)]
+    foto_mes >= PARAM$Boruta$train_from & foto_mes <= PARAM$Boruta$train_to & (clase01 == 1 | azar < 0.10)]
 
 
   # Imputo los nulos
   dtrain = na.roughfix(dataset[entrenamiento == TRUE, ..campos_buenos])
 
-  boruta_out <- Boruta(clase01~., data = dtrain, doTrace = 2, maxRuns = 15)
+  boruta_out <- Boruta(clase01~., data = dtrain, doTrace = 2, maxRuns = PARAM$Boruta$max_runs)
 
   fwrite(
     as.list(getSelectedAttributes(boruta_out)),
