@@ -10,6 +10,9 @@ require("yaml")
 require("data.table")
 require("ParamHelpers")
 
+install.packages("Boruta")
+library(Boruta)
+
 # creo environment global
 envg <- env()
 

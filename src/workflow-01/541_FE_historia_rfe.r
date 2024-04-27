@@ -17,6 +17,12 @@ require("lightgbm")
 install.packages("Boruta")
 library(Boruta)
 
+install.packages("caret")
+library(caret)
+
+install.packages("ggplot2")
+library(ggplot2)
+
 #------------------------------------------------------------------------------
 
 options(error = function() {
@@ -448,7 +454,7 @@ BorutaFilter <- function(boruta_semilla) {
   # Imputo los nulos
   dtrain = na.roughfix(dataset[entrenamiento == TRUE, ..campos_buenos])
 
-  boruta_out <- Boruta(clase01~., data = dtrain, doTrace = 2, maxRuns = 15)
+  boruta_out <- Boruta(clase01~., data = dtrain, doTrace = 2, maxRuns =100)
 
   fwrite(
     as.list(getSelectedAttributes(boruta_out)),
@@ -472,6 +478,71 @@ BorutaFilter <- function(boruta_semilla) {
 
 }
 
+#------------------------------------------------------------------------------
+#RFE
+RFEFilter <- function(rfe_semilla) {
+
+  OUTPUT$cols_pre_rfe <- ncol(dataset)
+
+  ## PREPARACION DATASET
+
+  # Armo una lista auxiliar para el under sampling clase00
+  set.seed(PARAM$seed, kind = "L'Ecuyer-CMRG")
+  
+  # Armo un feature de clasificación
+  dataset[, clase01 := ifelse(clase_ternaria == "CONTINUA", 0, 1)]
+
+  # campos sobre los que vamos a hacer en entrenamiento
+  campos_buenos <- setdiff(
+    colnames(dataset),
+    campitos
+    #c( campitos, "clase01")
+  )
+
+  # Define the control using a random forest selection function
+  control <- rfeControl(functions = rfFuncs, # random forest
+                        method = "repeatedcv", # repeated cv
+                        repeats = 5, # number of repeats
+                        number = 10) # number of folds
+
+
+  azar <- runif(nrow(dataset))
+
+  dataset[, entrenamiento :=
+    foto_mes >= 202101 & foto_mes <= 202103 & (clase01 == 1 | azar < 0.10)]
+
+
+  # Imputo los nulos
+  dtrain = na.roughfix(dataset[entrenamiento == TRUE, ..campos_buenos])
+
+  rfe_out <- rfe(x = dtrain, 
+                   y = clase01~., 
+                   rfeControl = control)
+
+  #rfe_out <- rfe(clase01~., data = dtrain, doTrace = 2, maxRuns =100)
+
+  fwrite(
+    as.list(predictors(rfe_out)),
+    file = "rfe_attributes.txt",
+    sep = "\n"
+  )
+
+  jpeg( "rfe_plot.jpeg" , width = 1024, height = 800 )
+  ggplot(data = rfe_out, metric = "Accuracy") + theme_bw()
+  dev.off()
+
+  col_utiles <- unique(c(
+    predictors(rfe_out),
+    campitos
+    #c( campitos, "mes")
+  ))
+
+  col_inutiles <- setdiff(colnames(dataset), col_utiles)
+
+  dataset[, (col_inutiles) := NULL]
+
+}
+
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -483,6 +554,8 @@ PARAM$RandomForest$semilla <- PARAM$semilla
 PARAM$CanaritosAsesinos$semilla <- PARAM$semilla
 
 PARAM$Boruta$seed <- PARAM$semilla # cambiar por la propia semilla
+
+PARAM$RFE$seed <- PARAM$semilla # cambiar por la propia semilla
 
   
 # cargo el dataset donde voy a entrenar
@@ -666,6 +739,16 @@ if( PARAM$Boruta$enabled ){
   OUTPUT$Boruta$ncol_antes <- ncol(dataset)
   BorutaFilter( boruta_semilla = PARAM$Boruta$seed )
   OUTPUT$Boruta$ncol_despues <- ncol(dataset)
+  GrabarOutput()
+  }
+
+###############
+# RFE
+
+if( PARAM$RFE$enabled ){
+  OUTPUT$RFE$ncol_antes <- ncol(dataset)
+  RFEFilter( rfe_semilla = PARAM$RFE$seed )
+  OUTPUT$RFE$ncol_despues <- ncol(dataset)
   GrabarOutput()
   }
 
