@@ -14,13 +14,13 @@ require("randomForest") # solo se usa para imputar nulos
 
 require("lightgbm")
 
-install.packages("Boruta")
+#install.packages("Boruta")
 library(Boruta)
 
-install.packages("caret")
+#install.packages("caret")
 library(caret)
 
-install.packages("ggplot2")
+#install.packages("ggplot2")
 library(ggplot2)
 
 #------------------------------------------------------------------------------
