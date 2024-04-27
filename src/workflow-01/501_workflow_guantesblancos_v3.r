@@ -10,15 +10,6 @@ require("yaml")
 require("data.table")
 require("ParamHelpers")
 
-#install.packages("Boruta")
-library(Boruta)
-
-#install.packages("caret")
-library(caret)
-
-#install.packages("ggplot2")
-library(ggplot2)
-
 # creo environment global
 envg <- env()
 
@@ -134,7 +125,7 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
   if( -1 == (param_local <- exp_init( pmyexp, pinputexps, pserver ))$resultado ) return( 0 )# linea fija
 
 
-  param_local$meta$script <- "/src/workflow-01/541_FE_historia_rfe.r"
+  param_local$meta$script <- "/src/workflow-01/z541_FE_historia.r"
 
   param_local$lag1 <- TRUE
   param_local$lag2 <- FALSE # no me engraso con los lags de orden 2
@@ -171,16 +162,9 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 
   # no me engraso las manos con los Canaritos Asesinos
   # varia de 0.0 a 2.0, si es 0.0 NO se activan
-  param_local$CanaritosAsesinos$ratio <- 0.0
+  param_local$CanaritosAsesinos$ratio <- 1.0
   # desvios estandar de la media, para el cutoff
-  param_local$CanaritosAsesinos$desvios <- 3.0
-
- # no me engraso las manos con boruta
-  param_local$Boruta$enabled <- FALSE # FALSE, no corre nada de lo que sigue
-
- # no me engraso las manos con rfe
-  param_local$RFE$enabled <- TRUE # FALSE, no corre nada de lo que sigue
-
+  param_local$CanaritosAsesinos$desvios <- 0.0
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
@@ -334,18 +318,18 @@ corrida_guantesblancos_202109 <- function( pnombrewf, pvirgen=FALSE )
 {
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
-  DT_incorporar_dataset_default( "DT_rfe1", "competencia_2024.csv.gz")
-  CA_catastrophe_default( "CA_rfe1", "DT_rfe1" )
+  DT_incorporar_dataset_default( "DT0009", "competencia_2024.csv.gz")
+  CA_catastrophe_default( "CA0009", "DT0009" )
 
-  DR_drifting_guantesblancos( "DR_rfe1", "CA_rfe1" )
-  FE_historia_guantesblancos( "FE_rfe1", "DR_rfe1" )
+  DR_drifting_guantesblancos( "DR0009", "CA0009" )
+  FE_historia_guantesblancos( "FE0009", "DR0009" )
 
-  TS_strategy_guantesblancos_202109( "TS_rfe1", "FE_rfe1" )
+  TS_strategy_guantesblancos_202109( "TS0009", "FE0009" )
 
-  HT_tuning_guantesblancos( "HT_rfe1", "TS_rfe1" )
+  HT_tuning_guantesblancos( "HT0009", "TS0009" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ_rfe1", c("HT_rfe1","TS_rfe1") )
+  ZZ_final_guantesblancos( "ZZ0009", c("HT0009","TS0009") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -362,12 +346,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
   # Ya tengo corrido FE0001 y parto de alli
-  TS_strategy_guantesblancos_202107( "TS_rfe2", "FE_rfe1" )
+  TS_strategy_guantesblancos_202107( "TS00010", "FE0009" )
 
-  HT_tuning_guantesblancos( "HT_rfe2", "TS_rfe2" )
+  HT_tuning_guantesblancos( "HT00010", "TS00010" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ_rfe2", c("HT_rfe2", "TS_rfe2") )
+  ZZ_final_guantesblancos( "ZZ00010", c("HT00010", "TS00010") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -379,12 +363,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
 
 # Hago primero esta corrida que me genera los experimentos
 # DT0001, CA0001, DR0001, FE0001, TS0001, HT0001 y ZZ0001
-corrida_guantesblancos_202109( "gb01_rfe" )
+corrida_guantesblancos_202109( "gb09" )
 
 
 # Luego partiendo de  FE0001
 # genero TS0002, HT0002 y ZZ0002
 
-corrida_guantesblancos_202107( "gb02_rfe" )
+corrida_guantesblancos_202107( "gb10" )
 
  
