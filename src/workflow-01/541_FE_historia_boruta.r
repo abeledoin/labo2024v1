@@ -5,16 +5,20 @@
 rm(list = ls(all.names = TRUE)) # remove all objects
 gc(full = TRUE) # garbage collection
 
-library (Boruta)
-require("data.table")
-require("yaml")
-require("Rcpp")
 
-require("ranger")
-require("randomForest") # solo se usa para imputar nulos
+## Instalamos los paquetes dinamicamente en el ambiente ya que "Boruta" no forma parte de la instalacion imagen
+packages = c("data.table", "yaml", "Rcpp", "ranger", "randomForest", "lightgbm", "Boruta")
 
-require("lightgbm")
-
+## Now load or install&load all
+package.check <- lapply(
+  packages,
+  FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  }
+)
 
 #------------------------------------------------------------------------------
 
@@ -52,7 +56,7 @@ GrabarOutput <- function() {
 #  tendencia calculada con cuadrados minimos
 # la formula de calculo de la tendencia puede verse en
 #  https://stats.libretexts.org/Bookshelves/Introductory_Statistics/Book%3A_Introductory_Statistics_(Shafer_and_Zhang)/10%3A_Correlation_and_Regression/10.04%3A_The_Least_Squares_Regression_Line
-# para la maxíma velocidad esta funcion esta escrita en lenguaje C,
+# para la max�ma velocidad esta funcion esta escrita en lenguaje C,
 # y no en la porqueria de R o Python
 
 cppFunction("NumericVector fhistC(NumericVector pcolumna, IntegerVector pdesde )
@@ -218,7 +222,7 @@ AgregaVarRandomForest <- function(
       (clase01 == 1 | azar < 0.10))]
 
   # imputo los nulos, ya que ranger no acepta nulos
-  # Leo Breiman, ¿por que le temias a los nulos?
+  # Leo Breiman, �por que le temias a los nulos?
   set.seed(semilla, kind = "L'Ecuyer-CMRG")
   dataset_rf <- na.roughfix(dataset_rf)
 
@@ -291,7 +295,7 @@ fganancia_lgbm_meseta <- function(probs, datos) {
   tbl[, gan_acum := cumsum(gan)]
   setorder(tbl, -gan_acum) # voy por la meseta
 
-  gan <- mean(tbl[1:500, gan_acum]) # meseta de tamaño 500
+  gan <- mean(tbl[1:500, gan_acum]) # meseta de tama�o 500
 
   pos_meseta <- tbl[1:500, median(posicion)]
   VPOS_CORTE <<- c(VPOS_CORTE, pos_meseta)
@@ -307,13 +311,14 @@ fganancia_lgbm_meseta <- function(probs, datos) {
 #  de la capa geologica de canaritos
 # se llama varias veces, luego de agregar muchas variables nuevas,
 #  para ir reduciendo la cantidad de variables
-# y así hacer lugar a nuevas variables importantes
+# y as� hacer lugar a nuevas variables importantes
 
 GVEZ <- 1
 
 CanaritosAsesinos <- function(
     canaritos_ratio = 0.2,
     canaritos_desvios = 3.0, canaritos_semilla = 999983) {
+  
   gc()
   dataset[, clase01 := ifelse(clase_ternaria == "CONTINUA", 0, 1)]
 
@@ -324,10 +329,9 @@ CanaritosAsesinos <- function(
 
   campos_buenos <- setdiff(
     colnames(dataset),
-    c(campitos,"clase01")
+    c( campitos, "clase01")
   )
 
-  set.seed(canaritos_semilla, kind = "L'Ecuyer-CMRG")
   azar <- runif(nrow(dataset))
 
   dataset[, entrenamiento :=
@@ -416,40 +420,34 @@ CanaritosAsesinos <- function(
   dataset[, (col_inutiles) := NULL]
 }
 #------------------------------------------------------------------------------
-#Boruta
 
-BorutaFilter <- function( boruta_semilla ) {
+BorutaFilter <- function( boruta_semilla, boruta_max_run ) {
   
-  OUTPUT$cols_pre_boruta <- ncol(dataset)
-  
+  gc()
+
   ## PREPARACION DATASET
-  
-  # Armo un feature de clasificación
- 
-   dataset[, clase01 := ifelse(clase_ternaria == "CONTINUA", 0, 1)]
+
+  # Armo un feature de clasificaci�n
+  dataset[, clase01 := ifelse(clase_ternaria == "CONTINUA", 0, 1)]
   # campos sobre los que vamos a hacer en entrenamiento
+  campos_buenos <- setdiff(colnames(dataset), c("clase_ternaria"))
   
-   campos_buenos <- setdiff(
-    colnames(dataset),
-    campitos
-  )
+  dataset_boruta <- copy(dataset[, campos_buenos, with = FALSE])
   
   # Armo una lista auxiliar para el under sampling clase00
   set.seed(boruta_semilla, kind = "L'Ecuyer-CMRG")
-  azar <- runif(nrow(dataset))
+  azar <- runif(nrow(dataset_boruta))
   
   # Agrego una columna para indicar cuales quiero usar del dataset
-  dataset[, entrenamiento :=
-            as.integer(
-              foto_mes >= PARAM$Boruta$train_from & 
-                foto_mes <= PARAM$Boruta$train_to & 
-                (clase01 == 1 | azar < 0.10))
-  ]
+  dataset_boruta[, entrenamiento :=
+                   as.integer(foto_mes >= 202101 & foto_mes <= 202103 &
+                                (clase01 == 1 | azar < 0.10))]
   
   # Imputo los nulos
-  dtrain = na.roughfix(dataset[entrenamiento==TRUE, ..campos_buenos])
+  set.seed(boruta_semilla, kind = "L'Ecuyer-CMRG")
+  dataset_boruta <- na.roughfix(dataset_boruta)
   
-  boruta_out <- Boruta(clase01~.,data=dtrain, doTrace=2, maxRuns=PARAM$Boruta$max_runs)
+  boruta_out <- Boruta(clase01~., data=dataset_boruta, doTrace=2, maxRuns=boruta_max_run)
   
   fwrite(
     as.list(getSelectedAttributes(boruta_out)),
@@ -463,13 +461,18 @@ BorutaFilter <- function( boruta_semilla ) {
   
   col_utiles <- unique(c(
     getSelectedAttributes(boruta_out),
-    campitos
+    c(campitos, "mes")
   ))
   
   col_inutiles <- setdiff(colnames(dataset), col_utiles)
   
-  dataset[, (col_inutiles) := NULL]  
+  dataset[, (col_inutiles) := NULL]
   
+  rm(dataset_boruta)
+  
+  dataset[, clase01 := NULL]
+  
+  gc()
 }
 
 
@@ -480,7 +483,7 @@ OUTPUT$time$start <- format(Sys.time(), "%Y%m%d %H%M%S")
 
 PARAM$RandomForest$semilla <- PARAM$semilla
 PARAM$CanaritosAsesinos$semilla <- PARAM$semilla
-PARAM$Boruta$semilla<-PARAM$semilla
+PARAM$Boruta$semilla <- PARAM$semilla
   
 # cargo el dataset donde voy a entrenar
 # esta en la carpeta del exp_input y siempre se llama  dataset.csv.gz
@@ -655,19 +658,23 @@ if (PARAM$CanaritosAsesinos$ratio > 0.0) {
   OUTPUT$CanaritosAsesinos$ncol_despues <- ncol(dataset)
   GrabarOutput()
 }
-#------------------------------------------------------------------------------
-#Boruta
 
-if( PARAM$Boruta$enabled ){
+
+#--------------------------------------------------------------------------
+# Boruta
+
+if( PARAM$Boruta$enabled ) {
   OUTPUT$Boruta$ncol_antes <- ncol(dataset)
-  BorutaFilter(
-  boruta_semilla = PARAM$Boruta$semilla
-  )
-  
+
+  BorutaFilter( 
+    boruta_semilla = PARAM$Boruta$semilla,
+    boruta_max_run = PARAM$Boruta$max_runs
+    )
+
   OUTPUT$Boruta$ncol_despues <- ncol(dataset)
   GrabarOutput()
-  
 }
+
 
 #------------------------------------------------------------------------------
 # grabo el dataset

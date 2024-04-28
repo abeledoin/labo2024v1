@@ -5,11 +5,11 @@
 rm(list = ls(all.names = TRUE)) # remove all objects
 gc(full = TRUE) # garbage collection
 
-library (Boruta)
 require("rlang")
 require("yaml")
 require("data.table")
 require("ParamHelpers")
+
 
 # creo environment global
 envg <- env()
@@ -21,6 +21,7 @@ envg$EXPENV$wf_dir_local <- "~/flow/"
 envg$EXPENV$repo_dir <- "~/labo2024v1/"
 envg$EXPENV$datasets_dir <- "~/buckets/b1/datasets/"
 envg$EXPENV$arch_sem <- "mis_semillas.txt"
+
 
 # default
 envg$EXPENV$gcloud$RAM <- 64
@@ -43,7 +44,7 @@ options(error = function() {
 #------------------------------------------------------------------------------
 # inicializaciones varias
 
-dir.create( envg$EXPENV$wf_dir, showWarnings = FALSE)
+dir.create( envg$EXPENV$exp_dir, showWarnings = FALSE)
 dir.create( envg$EXPENV$wf_dir, showWarnings = FALSE)
 dir.create( envg$EXPENV$wf_dir_local, showWarnings = FALSE)
 setwd( envg$EXPENV$wf_dir_local )
@@ -56,7 +57,7 @@ source( exp_lib )
 
 #------------------------------------------------------------------------------
 
-# pmyexp <- "DT0008"
+# pmyexp <- "DT0002"
 # parch <- "competencia_2024.csv.gz"
 # pserver <- "local"
 
@@ -76,8 +77,8 @@ DT_incorporar_dataset_default <- function( pmyexp, parch, pserver="local")
 }
 #------------------------------------------------------------------------------
 
-# pmyexp <- "CA0007"
-# pinputexps <- "DT0008"
+# pmyexp <- "CA0001"
+# pinputexps <- "DT0002"
 # pserver <- "local"
 
 CA_catastrophe_default <- function( pmyexp, pinputexps, pserver="local")
@@ -96,8 +97,8 @@ CA_catastrophe_default <- function( pmyexp, pinputexps, pserver="local")
 # Data Drifting de Guantes Blancos
 
 
-# pmyexp <- "DR0007"
-# pinputexps <- "CA0007"
+# pmyexp <- "DR0001"
+# pinputexps <- "CA0001"
 # pserver <- "local"
 
 DR_drifting_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
@@ -117,18 +118,18 @@ DR_drifting_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 }
 #------------------------------------------------------------------------------
 
-# pmyexp <- "FE0007"
-# pinputexps <- "DR0007"
+# pmyexp <- "FE0001"
+# pinputexps <- "DR0001"
 # pserver <- "local"
 
-FE_historia_boruta <- function( pmyexp, pinputexps, pserver="local")
+FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 {
   if( -1 == (param_local <- exp_init( pmyexp, pinputexps, pserver ))$resultado ) return( 0 )# linea fija
 
 
   param_local$meta$script <- "/src/workflow-01/541_FE_historia_boruta.r"
 
-  param_local$lag1 <- TRUE
+  param_local$lag1 <- TRUE ##TRUE
   param_local$lag2 <- FALSE # no me engraso con los lags de orden 2
   param_local$lag3 <- FALSE # no me engraso con los lags de orden 3
 
@@ -166,13 +167,11 @@ FE_historia_boruta <- function( pmyexp, pinputexps, pserver="local")
   param_local$CanaritosAsesinos$ratio <- 0.0
   # desvios estandar de la media, para el cutoff
   param_local$CanaritosAsesinos$desvios <- 4.0
-  
-  #Boruta
-  param_local$Boruta$enabled <- TRUE
-  param_local$Boruta$train_from <- 202101
-  param_local$Boruta$train_to <- 202101
-  param_local$Boruta$max_runs <- 30
 
+  # no me engraso las manos con boruta
+  param_local$Boruta$enabled <- TRUE # FALSE, no corre nada de lo que sigue
+  param_local$Boruta$max_runs <- 100
+  
   return( exp_correr_script( param_local ) ) # linea fija
 }
 #------------------------------------------------------------------------------
@@ -192,7 +191,7 @@ TS_strategy_guantesblancos_202109 <- function( pmyexp, pinputexps, pserver="loca
 
 
   param_local$train$training <- c(202105, 202104, 202103)
-  param_local$train$validation <- c(202106)
+  param_local$train$validation <- c(202106) # si pongo los mismos meses que training hace cross validation
   param_local$train$testing <- c(202107)
 
   # Atencion  0.1  de  undersampling de la clase mayoritaria,  los CONTINUA
@@ -325,18 +324,18 @@ corrida_guantesblancos_202109 <- function( pnombrewf, pvirgen=FALSE )
 {
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
-  DT_incorporar_dataset_default( "DT_boruta1", "competencia_2024.csv.gz")
-  CA_catastrophe_default( "CA_boruta1", "DT_boruta1" )
+  DT_incorporar_dataset_default( "DT0001_boruta_100", "competencia_2024.csv.gz")
+  CA_catastrophe_default( "CA0001_boruta_100", "DT0001_boruta_100" )
 
-  DR_drifting_guantesblancos( "DR_boruta1", "CA_boruta1" )
-  FE_historia_boruta( "FE_boruta1", "DR_boruta1" )
+  DR_drifting_guantesblancos( "DR0001_boruta_100", "CA0001_boruta_100" )
+  FE_historia_guantesblancos( "FE0001_boruta_100", "DR0001_boruta_100" )
 
-  TS_strategy_guantesblancos_202109( "TS_boruta1", "FE_boruta1" )
+  TS_strategy_guantesblancos_202109( "TS0001_boruta_100", "FE0001_boruta_100" )
 
-  HT_tuning_guantesblancos( "HT_boruta1", "TS_boruta1" )
+  HT_tuning_guantesblancos( "HT0001_boruta_100", "TS0001_boruta_100" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ_boruta1", c("HT_boruta1","TS_boruta1") )
+  ZZ_final_guantesblancos( "ZZ0001_boruta_100", c("HT0001_boruta_100","TS0001_boruta_100") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -353,12 +352,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
   # Ya tengo corrido FE0001 y parto de alli
-  TS_strategy_guantesblancos_202107( "TS_boruta2", "FE_boruta1" )
+  TS_strategy_guantesblancos_202107( "TS0002_boruta_100", "FE0001_boruta_100" )
 
-  HT_tuning_guantesblancos( "HT_boruta2", "TS_boruta2" )
+  HT_tuning_guantesblancos( "HT0002_boruta_100", "TS0002_boruta_100" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ_boruta2", c("HT_boruta2", "TS_boruta2") )
+  ZZ_final_guantesblancos( "ZZ0002_boruta_100", c("HT0002_boruta_100", "TS0002_boruta_100") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -370,12 +369,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
 
 # Hago primero esta corrida que me genera los experimentos
 # DT0001, CA0001, DR0001, FE0001, TS0001, HT0001 y ZZ0001
-corrida_guantesblancos_202109( "gb01_boruta" )
+corrida_guantesblancos_202109( "gb01_boruta_100" )
 
 
 # Luego partiendo de  FE0001
 # genero TS0002, HT0002 y ZZ0002
 
-corrida_guantesblancos_202107( "gb02_boruta" )
+corrida_guantesblancos_202107( "gb02_boruta_100" )
 
  
