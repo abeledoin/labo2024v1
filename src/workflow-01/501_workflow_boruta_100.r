@@ -7,7 +7,7 @@ gc(full = TRUE) # garbage collection
 
 
 ## Instalamos los paquetes dinámicamente en el ambiente
-packages = c("rlang", "yaml", "data.table", "ParamHelpers")
+packages = c("rlang", "yaml", "data.table", "ParamHelpers","Boruta")
 
 ## Now load or install&load all
 package.check <- lapply(
@@ -26,11 +26,10 @@ envg <- env()
 envg$EXPENV <- list()
 envg$EXPENV$exp_dir <- "~/buckets/b1/exp/"
 envg$EXPENV$wf_dir <- "~/buckets/b1/flow/"
-envg$EXPENV$wf_dir_local <- "~/buckets/b1/flow/"
-envg$EXPENV$repo_dir <- paste0( getwd(), "/" )
+envg$EXPENV$wf_dir_local <- "~/flow/"
+envg$EXPENV$repo_dir <- "~/labo2024v1/"
 envg$EXPENV$datasets_dir <- "~/buckets/b1/datasets/"
 envg$EXPENV$arch_sem <- "mis_semillas.txt"
-
 
 # default
 envg$EXPENV$gcloud$RAM <- 64
