@@ -5,11 +5,20 @@
 rm(list = ls(all.names = TRUE)) # remove all objects
 gc(full = TRUE) # garbage collection
 
-require("rlang")
-require("yaml")
-require("data.table")
-require("ParamHelpers")
 
+## Instalamos los paquetes dinámicamente en el ambiente
+packages = c("rlang", "yaml", "data.table", "ParamHelpers")
+
+## Now load or install&load all
+package.check <- lapply(
+  packages,
+  FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  }
+)
 
 # creo environment global
 envg <- env()
@@ -17,8 +26,8 @@ envg <- env()
 envg$EXPENV <- list()
 envg$EXPENV$exp_dir <- "~/buckets/b1/exp/"
 envg$EXPENV$wf_dir <- "~/buckets/b1/flow/"
-envg$EXPENV$wf_dir_local <- "~/flow/"
-envg$EXPENV$repo_dir <- "~/labo2024v1/"
+envg$EXPENV$wf_dir_local <- "~/buckets/b1/flow/"
+envg$EXPENV$repo_dir <- paste0( getwd(), "/" )
 envg$EXPENV$datasets_dir <- "~/buckets/b1/datasets/"
 envg$EXPENV$arch_sem <- "mis_semillas.txt"
 
@@ -54,6 +63,7 @@ setwd( envg$EXPENV$wf_dir_local )
 
 exp_lib <- paste0( envg$EXPENV$repo_dir,"/src/lib/z590_exp_lib_01.r")
 source( exp_lib )
+
 
 #------------------------------------------------------------------------------
 
@@ -127,9 +137,9 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
   if( -1 == (param_local <- exp_init( pmyexp, pinputexps, pserver ))$resultado ) return( 0 )# linea fija
 
 
-  param_local$meta$script <- "/src/workflow-01/541_FE_historia_boruta.r"
+  param_local$meta$script <- "/src/workflow-01/541_FE_historia_boruta_100.r"
 
-  param_local$lag1 <- TRUE ##TRUE
+  param_local$lag1 <- TRUE 
   param_local$lag2 <- FALSE # no me engraso con los lags de orden 2
   param_local$lag3 <- FALSE # no me engraso con los lags de orden 3
 

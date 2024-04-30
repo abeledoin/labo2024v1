@@ -445,7 +445,7 @@ BorutaFilter <- function( boruta_semilla, boruta_max_run ) {
   
   # Imputo los nulos
   set.seed(boruta_semilla, kind = "L'Ecuyer-CMRG")
-  dataset_boruta <- na.roughfix(dataset_boruta)
+  dataset_boruta <- na.roughfix(dataset_boruta[entrenamiento==TRUE, ..campos_buenos])
   
   boruta_out <- Boruta(clase01~., data=dataset_boruta, doTrace=2, maxRuns=boruta_max_run)
   

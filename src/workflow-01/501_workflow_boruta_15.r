@@ -5,11 +5,19 @@
 rm(list = ls(all.names = TRUE)) # remove all objects
 gc(full = TRUE) # garbage collection
 
-require("rlang")
-require("yaml")
-require("data.table")
-require("ParamHelpers")
+# Instalamos los paquetes dinámicamente en el ambiente
+packages = c("rlang", "yaml", "data.table", "ParamHelpers")
 
+# Now load or install&load all
+package.check <- lapply(
+  packages,
+  FUN = function(x) {
+    if (!require(x, character.only = TRUE)) {
+      install.packages(x, dependencies = TRUE)
+      library(x, character.only = TRUE)
+    }
+  }
+)
 
 # creo environment global
 envg <- env()
