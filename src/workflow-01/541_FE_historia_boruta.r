@@ -421,7 +421,7 @@ CanaritosAsesinos <- function(
 }
 #------------------------------------------------------------------------------
 
-BorutaFilter <- function( boruta_semilla, boruta_max_run ) {
+BorutaFilter <- function( boruta_semilla, boruta_max_run,boruta_train_from,boruta_train_to ) {
   
   gc()
 
