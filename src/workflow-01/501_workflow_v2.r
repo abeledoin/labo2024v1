@@ -5,19 +5,11 @@
 rm(list = ls(all.names = TRUE)) # remove all objects
 gc(full = TRUE) # garbage collection
 
-# Instalamos los paquetes dinámicamente en el ambiente
-packages = c("rlang", "yaml", "data.table", "ParamHelpers","Boruta")
+require("rlang")
+require("yaml")
+require("data.table")
+require("ParamHelpers")
 
-# Now load or install&load all
-package.check <- lapply(
-  packages,
-  FUN = function(x) {
-    if (!require(x, character.only = TRUE)) {
-      install.packages(x, dependencies = TRUE)
-      library(x, character.only = TRUE)
-    }
-  }
-)
 
 # creo environment global
 envg <- env()
@@ -29,6 +21,7 @@ envg$EXPENV$wf_dir_local <- "~/flow/"
 envg$EXPENV$repo_dir <- "~/labo2024v1/"
 envg$EXPENV$datasets_dir <- "~/buckets/b1/datasets/"
 envg$EXPENV$arch_sem <- "mis_semillas.txt"
+
 
 # default
 envg$EXPENV$gcloud$RAM <- 64
@@ -134,36 +127,36 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
   if( -1 == (param_local <- exp_init( pmyexp, pinputexps, pserver ))$resultado ) return( 0 )# linea fija
 
 
-  param_local$meta$script <- "/src/workflow-01/541_FE_historia_boruta.r"
+  param_local$meta$script <- "/src/workflow-01/541_FE_historia.r"
 
   param_local$lag1 <- TRUE ##TRUE
-  param_local$lag2 <- FALSE # no me engraso con los lags de orden 2
-  param_local$lag3 <- FALSE # no me engraso con los lags de orden 3
+  param_local$lag2 <- TRUE # no me engraso con los lags de orden 2
+  param_local$lag3 <- TRUE # no me engraso con los lags de orden 3
 
   # no me engraso las manos con las tendencias
-  param_local$Tendencias1$run <- FALSE  # FALSE, no corre nada de lo que sigue
+  param_local$Tendencias1$run <- TRUE  # FALSE, no corre nada de lo que sigue
   param_local$Tendencias1$ventana <- 6
   param_local$Tendencias1$tendencia <- TRUE
-  param_local$Tendencias1$minimo <- FALSE
-  param_local$Tendencias1$maximo <- FALSE
-  param_local$Tendencias1$promedio <- FALSE
-  param_local$Tendencias1$ratioavg <- FALSE
-  param_local$Tendencias1$ratiomax <- FALSE
+  param_local$Tendencias1$minimo <- TRUE
+  param_local$Tendencias1$maximo <- TRUE
+  param_local$Tendencias1$promedio <- TRUE
+  param_local$Tendencias1$ratioavg <- TRUE
+  param_local$Tendencias1$ratiomax <- TRUE
 
   # no me engraso las manos con las tendencias de segundo orden
-  param_local$Tendencias2$run <- FALSE
+  param_local$Tendencias2$run <- TRUE
   param_local$Tendencias2$ventana <- 6
   param_local$Tendencias2$tendencia <- TRUE
-  param_local$Tendencias2$minimo <- FALSE
-  param_local$Tendencias2$maximo <- FALSE
-  param_local$Tendencias2$promedio <- FALSE
-  param_local$Tendencias2$ratioavg <- FALSE
-  param_local$Tendencias2$ratiomax <- FALSE
+  param_local$Tendencias2$minimo <- TRUE
+  param_local$Tendencias2$maximo <- TRUE
+  param_local$Tendencias2$promedio <- TRUE
+  param_local$Tendencias2$ratioavg <- TRUE
+  param_local$Tendencias2$ratiomax <- TRUE
 
 
   # No me engraso las manos con las variables nuevas agregadas por un RF
   # esta parte demora mucho tiempo en correr, y estoy en modo manos_limpias
-  param_local$RandomForest$run <- FALSE
+  param_local$RandomForest$run <- TRUE
   param_local$RandomForest$num.trees <- 20
   param_local$RandomForest$max.depth <- 4
   param_local$RandomForest$min.node.size <- 1000
@@ -176,7 +169,7 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
   param_local$CanaritosAsesinos$desvios <- 4.0
 
   # no me engraso las manos con boruta
-  param_local$Boruta$enabled <- TRUE # FALSE, no corre nada de lo que sigue
+  param_local$Boruta$enabled <- FALSE # FALSE, no corre nada de lo que sigue
   param_local$Boruta$max_runs <- 15
   
   return( exp_correr_script( param_local ) ) # linea fija
@@ -194,16 +187,20 @@ TS_strategy_guantesblancos_202109 <- function( pmyexp, pinputexps, pserver="loca
 
 
   param_local$future <- c(202109)
-  param_local$final_train <- c(202107, 202106, 202105)
+  param_local$final_train <- c(202107, 202106, 202105, 202104, 202103, 202102,
+    202101, 202012, 202011, 202010, 202009, 202008, 202002, 202001, 201912,
+    201911, 201910, 201909)
 
-
-  param_local$train$training <- c(202105, 202104, 202103)
+  
+  param_local$train$training <- c(202105, 202104, 202103, 202102, 202101,
+    202012, 202011, 202010, 202009, 202008, 202002, 202001, 201912, 201911,
+    201910, 201909, 201908, 201907)
   param_local$train$validation <- c(202106) # si pongo los mismos meses que training hace cross validation
   param_local$train$testing <- c(202107)
 
   # Atencion  0.1  de  undersampling de la clase mayoritaria,  los CONTINUA
   # 1.0 significa NO undersampling ,  0.1  es quedarse con el 10% de los CONTINUA
-  param_local$train$undersampling <- 0.1
+  param_local$train$undersampling <- 0.2
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
@@ -220,16 +217,20 @@ TS_strategy_guantesblancos_202107 <- function( pmyexp, pinputexps, pserver="loca
 
 
   param_local$future <- c(202107)
-  param_local$final_train <- c(202105, 202104, 202103)
+  param_local$final_train <- c(202105, 202104, 202103, 202102,
+    202101, 202012, 202011, 202010, 202009, 202008, 202002, 202001, 201912,
+    201911, 201910, 201909, 201908, 201907)
 
 
-  param_local$train$training <- c(202103, 202102, 202101)
+  param_local$train$training <- c(202103, 202102, 202101,
+    202012, 202011, 202010, 202009, 202008, 202002, 202001, 201912, 201911,
+    201910, 201909, 201908, 201907, 201906, 201905)
   param_local$train$validation <- c(202104)
   param_local$train$testing <- c(202105)
 
   # Atencion  0.1  de  undersampling de la clase mayoritaria,  los CONTINUA
   # 1.0 significa NO undersampling ,  0.1  es quedarse con el 10% de los CONTINUA
-  param_local$train$undersampling <- 0.1
+  param_local$train$undersampling <- 0.2
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
@@ -283,8 +284,8 @@ HT_tuning_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
     # White Gloves Bayesian Optimization, with a happy narrow exploration
     learning_rate = c( 0.02, 0.8 ),
     feature_fraction = c( 0.5, 0.9 ),
-    num_leaves = c( 300L, 1024L,  "integer" ),
-    min_data_in_leaf = c( 100L, 2000L, "integer" )
+    num_leaves = c( 8L, 2024L,  "integer" ),
+    min_data_in_leaf = c( 10L, 10000L, "integer" )
   )
 
 
@@ -331,18 +332,18 @@ corrida_guantesblancos_202109 <- function( pnombrewf, pvirgen=FALSE )
 {
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
-  DT_incorporar_dataset_default( "DT0001_boruta_15", "competencia_2024.csv.gz")
-  CA_catastrophe_default( "CA0001_boruta_15", "DT0001_boruta_15" )
+  DT_incorporar_dataset_default( "DT0001_variables", "competencia_2024.csv.gz")
+  CA_catastrophe_default( "CA0001_variables", "DT0001_variables" )
 
-  DR_drifting_guantesblancos( "DR0001_boruta_15", "CA0001_boruta_15" )
-  FE_historia_guantesblancos( "FE0001_boruta_15", "DR0001_boruta_15" )
+  DR_drifting_guantesblancos( "DR0001_variables", "CA0001_variables" )
+  FE_historia_guantesblancos( "FE0001_variables", "DR0001_variables" )
 
-  TS_strategy_guantesblancos_202109( "TS0001_boruta_15", "FE0001_boruta_15" )
+  TS_strategy_guantesblancos_202109( "TS0001_variables", "FE0001_variables" )
 
-  HT_tuning_guantesblancos( "HT0001_boruta_15", "TS0001_boruta_15" )
+  HT_tuning_guantesblancos( "HT0001_variables", "TS0001_variables" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ0001_boruta_15", c("HT0001_boruta_15","TS0001_boruta_15") )
+  ZZ_final_guantesblancos( "ZZ0001_variables", c("HT0001_variables","TS0001_variables") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -359,12 +360,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
   # Ya tengo corrido FE0001 y parto de alli
-  TS_strategy_guantesblancos_202107( "TS0002_boruta_15", "FE0001_boruta_15" )
+  TS_strategy_guantesblancos_202107( "TS0002_variables", "FE0001_variables" )
 
-  HT_tuning_guantesblancos( "HT0002_boruta_15", "TS0002_boruta_15" )
+  HT_tuning_guantesblancos( "HT0002_variables", "TS0002_variables" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ0002_boruta_15", c("HT0002_boruta_15", "TS0002_boruta_15") )
+  ZZ_final_guantesblancos( "ZZ0002_variables", c("HT0002_variables", "TS0002_variables") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -376,12 +377,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
 
 # Hago primero esta corrida que me genera los experimentos
 # DT0001, CA0001, DR0001, FE0001, TS0001, HT0001 y ZZ0001
-corrida_guantesblancos_202109( "gb01_boruta_15" )
+corrida_guantesblancos_202109( "gb01_variables" )
 
 
 # Luego partiendo de  FE0001
 # genero TS0002, HT0002 y ZZ0002
 
-corrida_guantesblancos_202107( "gb02_boruta_15" )
+corrida_guantesblancos_202107( "gb02_variables" )
 
  

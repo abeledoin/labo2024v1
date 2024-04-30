@@ -5,11 +5,10 @@
 rm(list = ls(all.names = TRUE)) # remove all objects
 gc(full = TRUE) # garbage collection
 
-
-## Instalamos los paquetes dinámicamente en el ambiente
+# Instalamos los paquetes dinámicamente en el ambiente
 packages = c("rlang", "yaml", "data.table", "ParamHelpers","Boruta")
 
-## Now load or install&load all
+# Now load or install&load all
 package.check <- lapply(
   packages,
   FUN = function(x) {
@@ -62,7 +61,6 @@ setwd( envg$EXPENV$wf_dir_local )
 
 exp_lib <- paste0( envg$EXPENV$repo_dir,"/src/lib/z590_exp_lib_01.r")
 source( exp_lib )
-
 
 #------------------------------------------------------------------------------
 
@@ -138,7 +136,7 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 
   param_local$meta$script <- "/src/workflow-01/541_FE_historia_boruta.r"
 
-  param_local$lag1 <- TRUE 
+  param_local$lag1 <- TRUE ##TRUE
   param_local$lag2 <- FALSE # no me engraso con los lags de orden 2
   param_local$lag3 <- FALSE # no me engraso con los lags de orden 3
 
@@ -179,7 +177,7 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 
   # no me engraso las manos con boruta
   param_local$Boruta$enabled <- TRUE # FALSE, no corre nada de lo que sigue
-  param_local$Boruta$max_runs <- 100
+  param_local$Boruta$max_runs <- 50
   param_local$Boruta$train_from <- 202101
   param_local$Boruta$train_to <- 202103
   
@@ -335,18 +333,18 @@ corrida_guantesblancos_202109 <- function( pnombrewf, pvirgen=FALSE )
 {
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
-  DT_incorporar_dataset_default( "DT0001_boruta_100", "competencia_2024.csv.gz")
-  CA_catastrophe_default( "CA0001_boruta_100", "DT0001_boruta_100" )
+  DT_incorporar_dataset_default( "DT0001_boruta_15", "competencia_2024.csv.gz")
+  CA_catastrophe_default( "CA0001_boruta_15", "DT0001_boruta_15" )
 
-  DR_drifting_guantesblancos( "DR0001_boruta_100", "CA0001_boruta_100" )
-  FE_historia_guantesblancos( "FE0001_boruta_100", "DR0001_boruta_100" )
+  DR_drifting_guantesblancos( "DR0001_boruta_15", "CA0001_boruta_15" )
+  FE_historia_guantesblancos( "FE0001_boruta_15", "DR0001_boruta_15" )
 
-  TS_strategy_guantesblancos_202109( "TS0001_boruta_100", "FE0001_boruta_100" )
+  TS_strategy_guantesblancos_202109( "TS0001_boruta_15", "FE0001_boruta_15" )
 
-  HT_tuning_guantesblancos( "HT0001_boruta_100", "TS0001_boruta_100" )
+  HT_tuning_guantesblancos( "HT0001_boruta_15", "TS0001_boruta_15" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ0001_boruta_100", c("HT0001_boruta_100","TS0001_boruta_100") )
+  ZZ_final_guantesblancos( "ZZ0001_boruta_15", c("HT0001_boruta_15","TS0001_boruta_15") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -363,12 +361,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
   # Ya tengo corrido FE0001 y parto de alli
-  TS_strategy_guantesblancos_202107( "TS0002_boruta_100", "FE0001_boruta_100" )
+  TS_strategy_guantesblancos_202107( "TS0002_boruta_15", "FE0001_boruta_15" )
 
-  HT_tuning_guantesblancos( "HT0002_boruta_100", "TS0002_boruta_100" )
+  HT_tuning_guantesblancos( "HT0002_boruta_15", "TS0002_boruta_15" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ0002_boruta_100", c("HT0002_boruta_100", "TS0002_boruta_100") )
+  ZZ_final_guantesblancos( "ZZ0002_boruta_15", c("HT0002_boruta_15", "TS0002_boruta_15") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -380,12 +378,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
 
 # Hago primero esta corrida que me genera los experimentos
 # DT0001, CA0001, DR0001, FE0001, TS0001, HT0001 y ZZ0001
-corrida_guantesblancos_202109( "gb01_boruta_100" )
+corrida_guantesblancos_202109( "gb01_boruta_15" )
 
 
 # Luego partiendo de  FE0001
 # genero TS0002, HT0002 y ZZ0002
 
-corrida_guantesblancos_202107( "gb02_boruta_100" )
+corrida_guantesblancos_202107( "gb02_boruta_15" )
 
  

@@ -440,7 +440,7 @@ BorutaFilter <- function( boruta_semilla, boruta_max_run ) {
   
   # Agrego una columna para indicar cuales quiero usar del dataset
   dataset_boruta[, entrenamiento :=
-                   as.integer(foto_mes >= 202101 & foto_mes <= 202103 &
+                   as.integer(foto_mes >= boruta_train_from & foto_mes <= boruta_train_to &
                                 (clase01 == 1 | azar < 0.10))]
   
   # Imputo los nulos
@@ -668,7 +668,9 @@ if( PARAM$Boruta$enabled ) {
 
   BorutaFilter( 
     boruta_semilla = PARAM$Boruta$semilla,
-    boruta_max_run = PARAM$Boruta$max_runs
+    boruta_max_run = PARAM$Boruta$max_runs,
+    boruta_train_from = PARAM$Boruta$train_from,
+    boruta_train_to = PARAM$Boruta$train_to
     )
 
   OUTPUT$Boruta$ncol_despues <- ncol(dataset)
