@@ -421,7 +421,7 @@ CanaritosAsesinos <- function(
 }
 #------------------------------------------------------------------------------
 
-BorutaFilter <- function( boruta_semilla, boruta_max_run,boruta_train_from,boruta_train_to ) {
+BorutaFilter <- function( boruta_semilla, boruta_max_run ) {
   
   gc()
 
@@ -440,12 +440,12 @@ BorutaFilter <- function( boruta_semilla, boruta_max_run,boruta_train_from,borut
   
   # Agrego una columna para indicar cuales quiero usar del dataset
   dataset_boruta[, entrenamiento :=
-                   as.integer(foto_mes >= boruta_train_from & foto_mes <= boruta_train_to &
+                   as.integer(foto_mes >= 202101 & foto_mes <= 202103 &
                                 (clase01 == 1 | azar < 0.10))]
   
   # Imputo los nulos
   set.seed(boruta_semilla, kind = "L'Ecuyer-CMRG")
-  dataset_boruta <- na.roughfix(dataset_boruta[entrenamiento==TRUE, ..campos_buenos])
+  dataset_boruta <- na.roughfix(dataset_boruta)
   
   boruta_out <- Boruta(clase01~., data=dataset_boruta, doTrace=2, maxRuns=boruta_max_run)
   
@@ -470,7 +470,7 @@ BorutaFilter <- function( boruta_semilla, boruta_max_run,boruta_train_from,borut
   
   rm(dataset_boruta)
   
-  dataset[, clase01 := NULL]
+  #dataset[, clase01 := NULL]
   
   gc()
 }
@@ -668,9 +668,7 @@ if( PARAM$Boruta$enabled ) {
 
   BorutaFilter( 
     boruta_semilla = PARAM$Boruta$semilla,
-    boruta_max_run = PARAM$Boruta$max_runs,
-    boruta_train_from = PARAM$Boruta$train_from,
-    boruta_train_to = PARAM$Boruta$train_to
+    boruta_max_run = PARAM$Boruta$max_runs
     )
 
   OUTPUT$Boruta$ncol_despues <- ncol(dataset)
