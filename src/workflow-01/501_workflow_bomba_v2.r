@@ -189,7 +189,7 @@ TS_strategy_guantesblancos_202109 <- function( pmyexp, pinputexps, pserver="loca
   param_local$future <- c(202109)
   param_local$final_train <- c(202107, 202106, 202105, 202104, 202103, 202102,
     202101, 202012, 202011, 202010, 202009, 202008, 202002, 202001, 201912,
-    201911, 201910, 201909)
+    201911, 201910, 201909) 
 
   
   param_local$train$training <- c(202105, 202104, 202103, 202102, 202101,
@@ -200,7 +200,7 @@ TS_strategy_guantesblancos_202109 <- function( pmyexp, pinputexps, pserver="loca
 
   # Atencion  0.1  de  undersampling de la clase mayoritaria,  los CONTINUA
   # 1.0 significa NO undersampling ,  0.1  es quedarse con el 10% de los CONTINUA
-  param_local$train$undersampling <- 0.2
+  param_local$train$undersampling <- 0.3
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
@@ -230,7 +230,7 @@ TS_strategy_guantesblancos_202107 <- function( pmyexp, pinputexps, pserver="loca
 
   # Atencion  0.1  de  undersampling de la clase mayoritaria,  los CONTINUA
   # 1.0 significa NO undersampling ,  0.1  es quedarse con el 10% de los CONTINUA
-  param_local$train$undersampling <- 0.2
+  param_local$train$undersampling <- 0.3
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
@@ -282,15 +282,17 @@ HT_tuning_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 
     extra_trees = FALSE,
     # White Gloves Bayesian Optimization, with a happy narrow exploration
-    learning_rate = c( 0.02, 0.8 ),
-    feature_fraction = c( 0.5, 0.9 ),
-    num_leaves = c( 8L, 2024L,  "integer" ),
-    min_data_in_leaf = c( 10L, 10000L, "integer" )
+
+    # Valide la ganancia maxima de mi script bomba v1 y ajusto los limites de la bayesiana segun esos resultados
+    learning_rate = c( 0.02, 0.1 ),
+    feature_fraction = c( 0.75, 0.9 ),
+    num_leaves = c( 900L, 2024L,  "integer" ),
+    min_data_in_leaf = c( 10L, 3000L, "integer" )
   )
 
 
   # una Beyesian de Guantes Blancos, solo hace 15 iteraciones
-  param_local$bo_iteraciones <- 15 # iteraciones de la Optimizacion Bayesiana
+  param_local$bo_iteraciones <- 50 # iteraciones de la Optimizacion Bayesiana
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
@@ -332,18 +334,18 @@ corrida_guantesblancos_202109 <- function( pnombrewf, pvirgen=FALSE )
 {
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
-  DT_incorporar_dataset_default( "DT0001_bomba", "competencia_2024.csv.gz")
-  CA_catastrophe_default( "CA0001_bomba", "DT0001_bomba" )
+  DT_incorporar_dataset_default( "DT0001_bomba2", "competencia_2024.csv.gz")
+  CA_catastrophe_default( "CA0001_bomba2", "DT0001_bomba2" )
 
-  DR_drifting_guantesblancos( "DR0001_bomba", "CA0001_bomba" )
-  FE_historia_guantesblancos( "FE0001_bomba", "DR0001_bomba" )
+  DR_drifting_guantesblancos( "DR0001_bomba2", "CA0001_bomba2" )
+  FE_historia_guantesblancos( "FE0001_bomba2", "DR0001_bomba2" )
 
-  TS_strategy_guantesblancos_202109( "TS0001_bomba", "FE0001_bomba" )
+  TS_strategy_guantesblancos_202109( "TS0001_bomba2", "FE0001_bomba2" )
 
-  HT_tuning_guantesblancos( "HT0001_bomba", "TS0001_bomba" )
+  HT_tuning_guantesblancos( "HT0001_bomba2", "TS0001_bomba2" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ0001_bomba", c("HT0001_bomba","TS0001_bomba") )
+  ZZ_final_guantesblancos( "ZZ0001_bomba2", c("HT0001_bomba2","TS0001_bomba2") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -360,12 +362,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
   # Ya tengo corrido FE0001 y parto de alli
-  TS_strategy_guantesblancos_202107( "TS0002_bomba", "FE0001_bomba" )
+  TS_strategy_guantesblancos_202107( "TS0002_bomba2", "FE0001_bomba2" )
 
-  HT_tuning_guantesblancos( "HT0002_bomba", "TS0002_bomba" )
+  HT_tuning_guantesblancos( "HT0002_bomba2", "TS0002_bomba2" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ0002_bomba", c("HT0002_bomba", "TS0002_bomba") )
+  ZZ_final_guantesblancos( "ZZ0002_bomba2", c("HT0002_bomba2", "TS0002_bomba2") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -377,12 +379,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
 
 # Hago primero esta corrida que me genera los experimentos
 # DT0001, CA0001, DR0001, FE0001, TS0001, HT0001 y ZZ0001
-corrida_guantesblancos_202109( "gb01_bomba" )
+corrida_guantesblancos_202109( "gb01_bomba2" )
 
 
 # Luego partiendo de  FE0001
 # genero TS0002, HT0002 y ZZ0002
 
-corrida_guantesblancos_202107( "gb02_bomba" )
+corrida_guantesblancos_202107( "gb02_bomba2" )
 
  
