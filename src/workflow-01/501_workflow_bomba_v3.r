@@ -164,7 +164,7 @@ FE_historia_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 
   # no me engraso las manos con los Canaritos Asesinos
   # varia de 0.0 a 2.0, si es 0.0 NO se activan
-  param_local$CanaritosAsesinos$ratio <- 1.0
+  param_local$CanaritosAsesinos$ratio <- 0.0
   # desvios estandar de la media, para el cutoff
   param_local$CanaritosAsesinos$desvios <- 2.0
 
@@ -292,7 +292,7 @@ HT_tuning_guantesblancos <- function( pmyexp, pinputexps, pserver="local")
 
 
   # una Beyesian de Guantes Blancos, solo hace 15 iteraciones
-  param_local$bo_iteraciones <- 40 # iteraciones de la Optimizacion Bayesiana
+  param_local$bo_iteraciones <- 30 # iteraciones de la Optimizacion Bayesiana
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
