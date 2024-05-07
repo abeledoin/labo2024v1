@@ -334,18 +334,18 @@ corrida_guantesblancos_202109 <- function( pnombrewf, pvirgen=FALSE )
 {
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
-  DT_incorporar_dataset_default( "DT0001_bomba2", "competencia_2024.csv.gz")
-  CA_catastrophe_default( "CA0001_bomba2", "DT0001_bomba2" )
+  DT_incorporar_dataset_default( "DT0001_bomba3", "competencia_2024.csv.gz")
+  CA_catastrophe_default( "CA0001_bomba3", "DT0001_bomba3" )
 
-  DR_drifting_guantesblancos( "DR0001_bomba2", "CA0001_bomba2" )
-  FE_historia_guantesblancos( "FE0001_bomba2", "DR0001_bomba2" )
+  DR_drifting_guantesblancos( "DR0001_bomba3", "CA0001_bomba3" )
+  FE_historia_guantesblancos( "FE0001_bomba3", "DR0001_bomba3" )
 
-  TS_strategy_guantesblancos_202109( "TS0001_bomba2", "FE0001_bomba2" )
+  TS_strategy_guantesblancos_202109( "TS0001_bomba3", "FE0001_bomba3" )
 
-  HT_tuning_guantesblancos( "HT0001_bomba2", "TS0001_bomba2" )
+  HT_tuning_guantesblancos( "HT0001_bomba3", "TS0001_bomba3" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ0001_bomba2", c("HT0001_bomba2","TS0001_bomba2") )
+  ZZ_final_guantesblancos( "ZZ0001_bomba3", c("HT0001_bomba3","TS0001_bomba3") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -362,12 +362,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
   # Ya tengo corrido FE0001 y parto de alli
-  TS_strategy_guantesblancos_202107( "TS0002_bomba2", "FE0001_bomba2" )
+  TS_strategy_guantesblancos_202107( "TS0002_bomba3", "FE0001_bomba3" )
 
-  HT_tuning_guantesblancos( "HT0002_bomba2", "TS0002_bomba2" )
+  HT_tuning_guantesblancos( "HT0002_bomba3", "TS0002_bomba3" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_guantesblancos( "ZZ0002_bomba2", c("HT0002_bomba2", "TS0002_bomba2") )
+  ZZ_final_guantesblancos( "ZZ0002_bomba3", c("HT0002_bomba3", "TS0002_bomba3") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -379,12 +379,12 @@ corrida_guantesblancos_202107 <- function( pnombrewf, pvirgen=FALSE )
 
 # Hago primero esta corrida que me genera los experimentos
 # DT0001, CA0001, DR0001, FE0001, TS0001, HT0001 y ZZ0001
-corrida_guantesblancos_202109( "gb01_bomba2" )
+corrida_guantesblancos_202109( "gb01_bomba3" )
 
 
 # Luego partiendo de  FE0001
 # genero TS0002, HT0002 y ZZ0002
 
-corrida_guantesblancos_202107( "gb02_bomba2" )
+corrida_guantesblancos_202107( "gb02_bomba3" )
 
  
