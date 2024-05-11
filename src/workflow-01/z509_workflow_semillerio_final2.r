@@ -119,21 +119,21 @@ FE_historia_baseline <- function( pmyexp, pinputexps, pserver="local")
   param_local$Tendencias1$run <- TRUE  # FALSE, no corre nada de lo que sigue
   param_local$Tendencias1$ventana <- 6
   param_local$Tendencias1$tendencia <- TRUE
-  param_local$Tendencias1$minimo <- TRUE
-  param_local$Tendencias1$maximo <- TRUE
-  param_local$Tendencias1$promedio <- TRUE
-  param_local$Tendencias1$ratioavg <- TRUE
-  param_local$Tendencias1$ratiomax <- TRUE
+  param_local$Tendencias1$minimo <- FALSE
+  param_local$Tendencias1$maximo <- FALSE
+  param_local$Tendencias1$promedio <- FALSE
+  param_local$Tendencias1$ratioavg <- FALSE
+  param_local$Tendencias1$ratiomax <- FALSE
 
   # baseline
   param_local$Tendencias2$run <- TRUE
   param_local$Tendencias2$ventana <- 6
   param_local$Tendencias2$tendencia <- TRUE
-  param_local$Tendencias2$minimo <- TRUE
-  param_local$Tendencias2$maximo <- TRUE
-  param_local$Tendencias2$promedio <- TRUE
-  param_local$Tendencias2$ratioavg <- TRUE
-  param_local$Tendencias2$ratiomax <- TRUE
+  param_local$Tendencias2$minimo <- FALSE
+  param_local$Tendencias2$maximo <- FALSE
+  param_local$Tendencias2$promedio <- FALSE
+  param_local$Tendencias2$ratioavg <- FALSE
+  param_local$Tendencias2$ratiomax <- FALSE
 
 
   # baseline
@@ -173,7 +173,7 @@ TS_strategy_baseline_202109 <- function( pmyexp, pinputexps, pserver="local")
   param_local$train$testing <- c(202107)
 
   # undersampling  baseline
-  param_local$train$undersampling <- 0.2
+  param_local$train$undersampling <- 0.3
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
@@ -233,7 +233,7 @@ HT_tuning_baseline <- function( pmyexp, pinputexps, pserver="local")
     max_bin = 31L, # lo debo dejar fijo, no participa de la BO
     num_iterations = 9999, # un numero muy grande, lo limita early_stopping_rounds
 
-    bagging_fraction = 1.0, # 0.0 < bagging_fraction <= 1.0
+    bagging_fraction = 0.7, # 0.0 < bagging_fraction <= 1.0
     pos_bagging_fraction = 1.0, # 0.0 < pos_bagging_fraction <= 1.0
     neg_bagging_fraction = 1.0, # 0.0 < neg_bagging_fraction <= 1.0
     is_unbalance = FALSE, #
@@ -245,15 +245,15 @@ HT_tuning_baseline <- function( pmyexp, pinputexps, pserver="local")
 
     extra_trees = FALSE,
     # Quasi  baseline, el minimo learning_rate es 0.02 !!
-    learning_rate = c( 0.02, 0.8 ),
-    feature_fraction = c( 0.5, 0.9 ),
-    num_leaves = c( 8L, 2000L,  "integer" ),
-    min_data_in_leaf = c( 10L, 8000L, "integer" )
+    learning_rate = c( 0.01, 0.5 ),
+    feature_fraction = c( 0.3, 0.7 ),
+    num_leaves = c( 10L, 500L,  "integer" ),
+    min_data_in_leaf = c( 200L, 5000L, "integer" )
   )
 
 
   # una Beyesian de Guantes Blancos, solo hace 15 iteraciones
-  param_local$bo_iteraciones <- 30 # iteraciones de la Optimizacion Bayesiana
+  param_local$bo_iteraciones <- 50 # iteraciones de la Optimizacion Bayesiana
 
   return( exp_correr_script( param_local ) ) # linea fija
 }
@@ -323,18 +323,18 @@ corrida_baseline_semillerio_202109 <- function( pnombrewf, pvirgen=FALSE )
 {
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
-  DT_incorporar_dataset_baseline( "DT0001-sem1", "competencia_2024.csv.gz")
-  CA_catastrophe_baseline( "CA0001-sem1", "DT0001-sem1" )
+  DT_incorporar_dataset_baseline( "DT0001-sem2", "competencia_2024.csv.gz")
+  CA_catastrophe_baseline( "CA0001-sem2", "DT0001-sem2" )
 
-  DR_drifting_baseline( "DR0001-sem1", "CA0001-sem1" )
-  FE_historia_baseline( "FE0001-sem1", "DR0001-sem1" )
+  DR_drifting_baseline( "DR0001-sem2", "CA0001-sem2" )
+  FE_historia_baseline( "FE0001-sem2", "DR0001-sem2" )
 
-  TS_strategy_baseline_202109( "TS0001-sem1", "FE0001-sem1" )
+  TS_strategy_baseline_202109( "TS0001-sem2", "FE0001-sem2" )
 
-  HT_tuning_baseline( "HT0001-sem1", "TS0001-sem1" )
+  HT_tuning_baseline( "HT0001-sem2", "TS0001-sem2" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_semillerio_baseline( "ZZ0001-sem1", c("HT0001-sem1","TS0001-sem1") )
+  ZZ_final_semillerio_baseline( "ZZ0001-sem2", c("HT0001-sem2","TS0001-sem2") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -373,7 +373,7 @@ corrida_baseline_semillerio_202109 <- function( pnombrewf, pvirgen=FALSE )
 #Aqui empieza el programa
 
 
-corrida_baseline_semillerio_202109( "basem01_1" )
+corrida_baseline_semillerio_202109( "basem01_2" )
 
 
 # Luego partiendo de  FE0001
