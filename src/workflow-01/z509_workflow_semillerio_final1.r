@@ -323,18 +323,18 @@ corrida_baseline_semillerio_202109 <- function( pnombrewf, pvirgen=FALSE )
 {
   if( -1 == exp_wf_init( pnombrewf, pvirgen) ) return(0) # linea fija
 
-  DT_incorporar_dataset_baseline( "DT0001-sem", "competencia_2024.csv.gz")
-  CA_catastrophe_baseline( "CA0001-sem", "DT0001-sem" )
+  DT_incorporar_dataset_baseline( "DT0001-sem1", "competencia_2024.csv.gz")
+  CA_catastrophe_baseline( "CA0001-sem1", "DT0001-sem" )
 
-  DR_drifting_baseline( "DR0001-sem", "CA0001-sem" )
-  FE_historia_baseline( "FE0001-sem", "DR0001-sem" )
+  DR_drifting_baseline( "DR0001-sem1", "CA0001-sem1" )
+  FE_historia_baseline( "FE0001-sem1", "DR0001-sem1" )
 
-  TS_strategy_baseline_202109( "TS0001-sem", "FE0001-sem" )
+  TS_strategy_baseline_202109( "TS0001-sem1", "FE0001-sem1" )
 
-  HT_tuning_baseline( "HT0001-sem", "TS0001-sem" )
+  HT_tuning_baseline( "HT0001-sem1", "TS0001-sem1" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_semillerio_baseline( "ZZ0001-sem", c("HT0001-sem","TS0001-sem") )
+  ZZ_final_semillerio_baseline( "ZZ0001-sem1", c("HT0001-sem1","TS0001-sem1") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
@@ -373,7 +373,7 @@ corrida_baseline_semillerio_202109 <- function( pnombrewf, pvirgen=FALSE )
 #Aqui empieza el programa
 
 
-corrida_baseline_semillerio_202109( "basem01" )
+corrida_baseline_semillerio_202109( "basem01_1" )
 
 
 # Luego partiendo de  FE0001
