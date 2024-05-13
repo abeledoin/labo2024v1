@@ -334,7 +334,7 @@ corrida_baseline_semillerio_202109 <- function( pnombrewf, pvirgen=FALSE )
   HT_tuning_baseline( "HT0001-final", "TS0001-final" )
 
   # El ZZ depente de HT y TS
-  ZZ_final_semillerio_baseline( "ZZ0001-final1", c("HT0001-sem2","TS0001-final") )
+  ZZ_final_semillerio_baseline( "ZZ0001-final1", c("HT0001-final","TS0001-final") )
 
 
   exp_wf_end( pnombrewf, pvirgen ) # linea fija
